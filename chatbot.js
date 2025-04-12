@@ -1,21 +1,22 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const toggleBtn = document.getElementById('chat-toggle');
     const chatBox = document.getElementById('chat-box');
     const closeBtn = document.getElementById('chat-close');
     const sendBtn = document.getElementById('chat-send');
     const chatInput = document.getElementById('chat-input');
     const chatMessages = document.getElementById('chat-messages');
 
+    // Show chat box by default
+    chatBox.style.display = 'flex';
+
     // Add welcome message
     appendMessage('Hello! I\'m your cultural travel assistant. How can I help you today?', 'Bot');
 
-    toggleBtn.addEventListener('click', () => {
-        chatBox.style.display = 'flex';
-        chatInput.focus();
-    });
-
     closeBtn.addEventListener('click', () => {
         chatBox.style.display = 'none';
+        // Notify parent window to hide iframe
+        if (window.parent !== window) {
+            window.parent.postMessage('close-chat', '*');
+        }
     });
 
     sendBtn.addEventListener('click', sendMessage);
@@ -45,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/chat', {
+            const response = await fetch('http://localhost:5000/api/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -78,4 +79,11 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
         }
     }
+
+    // Listen for messages from parent window
+    window.addEventListener('message', function(event) {
+        if (event.data === 'toggle-chat') {
+            chatBox.style.display = chatBox.style.display === 'none' ? 'flex' : 'none';
+        }
+    });
 }); 
